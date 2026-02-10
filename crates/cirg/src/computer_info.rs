@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use winreg::RegKey;
 use winreg::enums::*;
 use wmi::Variant;
+use crate::VariantExt;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComputerInfo {
@@ -34,7 +35,7 @@ pub struct BIOSInfo {
 }
 
 impl ComputerInfo {
-    pub async fn fetch() -> Result<ComputerInfo> {
+    pub fn fetch() -> Result<Self> {
         let com = wmi::WMIConnection::new()?;
         let results: Vec<HashMap<String, Variant>> =
             com.raw_query(r#"select * from Win32_ComputerSystem"#)?;
@@ -51,14 +52,14 @@ impl ComputerInfo {
             },
             manufacturer: data.get_string("Manufacturer")?,
             system_type: data.get_string("SystemType")?,
-            operating_system: OSInfo::fetch().await?,
-            bios: BIOSInfo::fetch().await?,
+            operating_system: OSInfo::fetch()?,
+            bios: BIOSInfo::fetch()?,
         })
     }
 }
 
 impl OSInfo {
-    pub async fn fetch() -> Result<OSInfo> {
+    pub fn fetch() -> Result<Self> {
         let mut os_info = OSInfo::default();
         let com = wmi::WMIConnection::new()?;
         let results: Vec<HashMap<String, Variant>> =
@@ -109,7 +110,7 @@ impl OSInfo {
 }
 
 impl BIOSInfo {
-    pub async fn fetch() -> Result<Self> {
+    pub fn fetch() -> Result<Self> {
         let mut bios_info: Self = BIOSInfo::default();
         let com = wmi::WMIConnection::new()?;
         let results: Vec<HashMap<String, Variant>> =
@@ -127,28 +128,5 @@ impl BIOSInfo {
         }
 
         Ok(bios_info)
-    }
-}
-
-trait VariantExt {
-    fn get_string(&self, key: &str) -> Result<String>;
-    fn get_bool(&self, key: &str) -> Result<bool>;
-}
-
-impl VariantExt for HashMap<String, Variant> {
-    fn get_string(&self, key: &str) -> Result<String> {
-        match self.get(key) {
-            Some(Variant::String(s)) => Ok(s.clone()),
-            None => Err(anyhow!("Key not found in HashMap")),
-            Some(_) => Err(anyhow!("Value for key is not a string")),
-        }
-    }
-
-    fn get_bool(&self, key: &str) -> Result<bool> {
-        match self.get(key) {
-            Some(Variant::Bool(b)) => Ok(*b),
-            None => Err(anyhow!("Key not found in HashMap")),
-            Some(_) => Err(anyhow!("Value for key is not a boolean")),
-        }
     }
 }
