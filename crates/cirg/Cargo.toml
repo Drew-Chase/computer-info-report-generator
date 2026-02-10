@@ -7,7 +7,10 @@ edition = "2024"
 sysinfo = {version = "0.38.1", features = []}
 wmi = {version = "0.18.1", features = ["chrono"]}
 winreg = {version = "0.55.0"}
-windows = {version = "0.62.2", features = ["Win32_Security_Tpm"]}
+windows = {version = "0.62.2", features = [
+    "Win32_Security_Tpm",
+    "Win32_System_SystemServices",
+]}
 chrono = {version = "0.4.43", features = ["serde"]}
 serde = {version = "1.0.228", features = ["derive"]}
 anyhow = {version = "1.0.101"}
