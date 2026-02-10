@@ -3,6 +3,9 @@ use anyhow::anyhow;
 use wmi::Variant;
 
 pub mod computer_info;
+pub mod power_info;
+pub mod security_info;
+
 // Helper trait for extracting values from WMI Variant HashMap
 pub(crate) trait VariantExt {
 	fn get_string(&self, key: &str) -> anyhow::Result<String>;
