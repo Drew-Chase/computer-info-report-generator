@@ -25,6 +25,7 @@ export default function StorageSection({data}: Props) {
                             <GlassCard key={i}>
                                 <h4 className="text-sm font-semibold text-foreground/80 mb-3">{d.model}</h4>
                                 <div className="grid grid-cols-2 gap-3">
+                                    <DataField label="Type" value={d.disk_type}/>
                                     <DataField label="Interface" value={d.interface_type}/>
                                     <DataField label="Media Type" value={d.media_type}/>
                                     <DataField label="Size" value={`${d.size_gb.toFixed(1)} GB`}/>

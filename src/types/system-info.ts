@@ -74,6 +74,7 @@ export interface PhysicalDisk {
     model: string;
     interface_type: string;
     media_type: string;
+    disk_type: string;
     size_gb: number;
     status: string;
 }
