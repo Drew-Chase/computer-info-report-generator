@@ -143,9 +143,29 @@ export function exportAsMarkdown(data: AllSystemInfo): string {
                 ["BitLocker", String(s.bit_locker)],
                 ["RDP Enabled", String(s.rdp_enabled)],
                 ["Antivirus", s.antivirus ?? "Not detected"],
-                ["Pending Updates", s.pending_updates],
             ]
         ));
+        lines.push("");
+
+        lines.push("### Pending Updates");
+        lines.push("");
+        if (s.pending_updates === null) {
+            lines.push("Unable to query Windows Update");
+        } else if (s.pending_updates.length === 0) {
+            lines.push("No pending updates");
+        } else {
+            lines.push(mdTable(
+                ["Title", "KB", "Severity", "Downloaded", "Mandatory", "Category"],
+                s.pending_updates.map(u => [
+                    u.title,
+                    u.kb_article_ids.join(", ") || "—",
+                    u.severity ?? "—",
+                    u.is_downloaded ? "Yes" : "No",
+                    u.is_mandatory ? "Yes" : "No",
+                    u.categories.join(", ") || "—",
+                ])
+            ));
+        }
         lines.push("");
     }
 

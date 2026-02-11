@@ -105,6 +105,25 @@ export function exportAsHtml(data: AllSystemInfo): string {
 
     if (data.security) {
         const s = data.security;
+        let pendingContent: string;
+        if (s.pending_updates === null) {
+            pendingContent = "<p>Unable to query Windows Update</p>";
+        } else if (s.pending_updates.length === 0) {
+            pendingContent = "<p>No pending updates</p>";
+        } else {
+            pendingContent = table(
+                ["Title", "KB", "Severity", "Downloaded", "Mandatory", "Category"],
+                s.pending_updates.map(u => [
+                    u.title,
+                    u.kb_article_ids.join(", ") || "—",
+                    u.severity ?? "—",
+                    u.is_downloaded ? "Yes" : "No",
+                    u.is_mandatory ? "Yes" : "No",
+                    u.categories.join(", ") || "—",
+                ])
+            );
+        }
+
         body += section("Security", `
             <div class="fields">
                 ${field("Secure Boot", s.secure_boot)}
@@ -112,8 +131,9 @@ export function exportAsHtml(data: AllSystemInfo): string {
                 ${field("BitLocker", s.bit_locker)}
                 ${field("RDP Enabled", s.rdp_enabled)}
                 ${field("Antivirus", s.antivirus ?? "Not detected")}
-                ${field("Pending Updates", s.pending_updates)}
             </div>
+            <h3>Pending Updates</h3>
+            ${pendingContent}
         `);
     }
 

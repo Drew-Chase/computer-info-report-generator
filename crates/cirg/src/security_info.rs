@@ -16,7 +16,7 @@ pub struct SecurityInfo {
     pub uac: bool,
     pub rdp_enabled: bool,
     pub bit_locker: bool,
-    pub pending_updates: String,
+    pub pending_updates: Option<Vec<UpdateItem>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -40,6 +40,16 @@ pub struct FirewallInfo {
     pub public_enabled: Option<bool>,
     pub public_inbound: Option<String>,
     pub public_outbound: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateItem {
+    pub title: String,
+    pub kb_article_ids: Vec<String>,
+    pub severity: Option<String>,
+    pub is_downloaded: bool,
+    pub is_mandatory: bool,
+    pub categories: Vec<String>,
 }
 
 impl ComputerInfoExt for SecurityInfo {
@@ -297,12 +307,11 @@ impl SecurityInfo {
         })
     }
 
-    fn fetch_pending_updates() -> String {
-        Self::query_pending_updates()
-            .unwrap_or_else(|_| "Unable to query Windows Update".to_string())
+    fn fetch_pending_updates() -> Option<Vec<UpdateItem>> {
+        Self::query_pending_updates().ok()
     }
 
-    fn query_pending_updates() -> windows::core::Result<String> {
+    fn query_pending_updates() -> windows::core::Result<Vec<UpdateItem>> {
         use windows::Win32::System::Com::{
             CoCreateInstance, CoInitializeEx, CLSCTX_INPROC_SERVER, COINIT_MULTITHREADED,
         };
@@ -322,18 +331,54 @@ impl SecurityInfo {
             let updates = result.Updates()?;
             let count = updates.Count()?;
 
-            if count == 0 {
-                return Ok("No pending updates".to_string());
-            }
-
-            let mut lines = vec![format!("{count} pending update(s):")];
+            let mut items = Vec::new();
             for i in 0..count {
                 let update = updates.get_Item(i)?;
-                let title = update.Title()?;
-                lines.push(format!("  - {title}"));
+
+                let title = update.Title()?.to_string();
+
+                // Collect KB article IDs
+                let mut kb_ids = Vec::new();
+                let kb_collection = update.KBArticleIDs()?;
+                let kb_count = kb_collection.Count()?;
+                for k in 0..kb_count {
+                    let kb = kb_collection.get_Item(k)?;
+                    kb_ids.push(format!("KB{kb}"));
+                }
+
+                // MSRC severity — empty string becomes None
+                let severity_bstr = update.MsrcSeverity()?;
+                let severity_str = severity_bstr.to_string();
+                let severity = if severity_str.is_empty() {
+                    None
+                } else {
+                    Some(severity_str)
+                };
+
+                let is_downloaded = update.IsDownloaded()?.as_bool();
+                let is_mandatory = update.IsMandatory()?.as_bool();
+
+                // Collect categories
+                let mut categories = Vec::new();
+                let cat_collection = update.Categories()?;
+                let cat_count = cat_collection.Count()?;
+                for c in 0..cat_count {
+                    let cat = cat_collection.get_Item(c)?;
+                    let name = cat.Name()?.to_string();
+                    categories.push(name);
+                }
+
+                items.push(UpdateItem {
+                    title,
+                    kb_article_ids: kb_ids,
+                    severity,
+                    is_downloaded,
+                    is_mandatory,
+                    categories,
+                });
             }
 
-            Ok(lines.join("\n"))
+            Ok(items)
         }
     }
 }

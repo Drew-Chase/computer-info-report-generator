@@ -181,6 +181,15 @@ export interface FirewallInfo {
     public_outbound: string | null;
 }
 
+export interface UpdateItem {
+    title: string;
+    kb_article_ids: string[];
+    severity: string | null;
+    is_downloaded: boolean;
+    is_mandatory: boolean;
+    categories: string[];
+}
+
 export interface SecurityInfo {
     secure_boot: boolean;
     tpm: TpmInfo | null;
@@ -189,7 +198,7 @@ export interface SecurityInfo {
     uac: boolean;
     rdp_enabled: boolean;
     bit_locker: boolean;
-    pending_updates: string;
+    pending_updates: UpdateItem[] | null;
 }
 
 export interface ProcessEntry {
