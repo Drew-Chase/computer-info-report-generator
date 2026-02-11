@@ -39,7 +39,7 @@ export default function SettingsPopover({refreshInterval, onRefreshIntervalChang
                         label="Refresh Interval"
                         size="sm"
                         step={1}
-                        minValue={0}
+                        minValue={10}
                         maxValue={60}
                         value={sliderValue}
                         getValue={(val) => formatLabel(val as number)}
