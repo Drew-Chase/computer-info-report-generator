@@ -8,27 +8,30 @@ export default {
         "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}"
     ],
     theme: {
-        extend: {},
+        extend: {
+            keyframes: {
+                fadeIn: {
+                    "0%": {opacity: "0"},
+                    "100%": {opacity: "1"},
+                },
+            },
+            animation: {
+                "fade-in": "fadeIn 0.4s ease-out",
+            },
+        },
     },
     darkMode: "class",
     plugins: [heroui({
         themes: {
-            light: {
-                colors: {
-                    primary: {
-                        DEFAULT: "#f13848",
-                        foreground: "#fff",
-                    },
-                    secondary: "#2b2b2b",
-                    background: "#e3e3ea",
-
-                }
-            },
             dark: {
                 colors: {
-                    primary: "#ff3247",
-                    secondary: "#eaeaea",
-                    background: "#18181b",
+                    primary: "#60a5fa",
+                    secondary: "#e5e5e5",
+                    background: "#111111",
+                    content1: "#1a1a1a",
+                    content2: "#1f1f1f",
+                    content3: "#242424",
+                    content4: "#2a2a2a",
                 }
             },
         }
