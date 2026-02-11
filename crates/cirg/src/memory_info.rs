@@ -67,7 +67,7 @@ impl ComputerInfoExt for MemoryInfo {
 				.to_string();
 
 				MemorySlot {
-					bank_label: data.get_string("BankLabel").unwrap_or_default(),
+					bank_label: data.get_string("DeviceLocator").unwrap_or_default(),
 					capacity_gb,
 					speed_mhz: data.get_u32("Speed").unwrap_or(0),
 					memory_type,
