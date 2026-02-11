@@ -7,6 +7,8 @@ import Home from "./pages/Home.tsx";
 import Navigation from "./components/Navigation.tsx";
 import {ThemeProvider} from "./providers/ThemeProvider.tsx";
 import {HeroUIProvider, ToastProvider} from "@heroui/react";
+import {useSettings} from "./hooks/useSettings.ts";
+import {useSystemInfo} from "./hooks/useSystemInfo.ts";
 
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
@@ -19,9 +21,10 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     </React.StrictMode>
 );
 
-export function MainContentRenderer()
-{
+export function MainContentRenderer() {
     const navigate = useNavigate();
+    const {refreshInterval, setRefreshInterval} = useSettings();
+    const {data, loading, isRefreshing, progress, refreshCountdown, lastRefreshDurationMs} = useSystemInfo({intervalMs: refreshInterval});
 
     useEffect(() => {
         const handleContextMenu = (e: MouseEvent) => e.preventDefault();
@@ -31,7 +34,7 @@ export function MainContentRenderer()
 
     return (
         <HeroUIProvider navigate={navigate}>
-            
+
             <ToastProvider
                 placement={"bottom-right"}
                 toastProps={{
@@ -40,18 +43,31 @@ export function MainContentRenderer()
                     variant: "flat"
                 }}
             />
-            
-            <main className={"flex flex-col p-0 m-0"}>
-                <Navigation/>
-                
-                <div className={"flex flex-row w-full max-h-[calc(100vh-2.5rem)] h-screen overflow-y-hidden p-0 m-0"} data-tauri-drag-region="">
+
+            <main className="flex flex-col p-0 m-0 h-screen overflow-hidden">
+                <Navigation
+                    refreshInterval={refreshInterval}
+                    onRefreshIntervalChange={setRefreshInterval}
+                    data={data}
+                    isRefreshing={isRefreshing}
+                    refreshCountdown={refreshCountdown}
+                    lastRefreshDurationMs={lastRefreshDurationMs}
+                />
+
+                <div className="flex flex-row w-full flex-1 overflow-hidden p-0 m-0">
                     <Routes>
                         <Route>
-                            <Route path="/" element={<Home/>}/>
+                            <Route path="/" element={
+                                <Home
+                                    data={data}
+                                    loading={loading}
+                                    isRefreshing={isRefreshing}
+                                    progress={progress}
+                                />
+                            }/>
                         </Route>
                     </Routes>
                 </div>
-                
             </main>
         </HeroUIProvider>
     );
