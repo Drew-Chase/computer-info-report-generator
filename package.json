@@ -12,7 +12,7 @@
     "build": "tsc && vite build",
     "build and preview": "npm run build && npm run preview",
     "tauri-dev": "tauri dev --no-watch",
-    "tauri-build": "tauri build && upx --best --ultra-brute --lzma --force-overwrite -o .\\cirg.exe target/release/cirg.exe"
+    "tauri-build": "tauri build && upx --best --ultra-brute --lzma --force-overwrite -o .\\target\\cirg.exe target/release/cirg.exe"
   },
   "dependencies": {
     "@heroui/react": "2.7.11",

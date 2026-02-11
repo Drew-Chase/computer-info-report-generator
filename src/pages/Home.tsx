@@ -55,7 +55,7 @@ export default function Home({data, loading, progress}: HomeProps) {
 
     return (
         <>
-            <LoadingOverlay visible={loading && progress < 0.5} progress={progress}/>
+            <LoadingOverlay visible={loading} progress={progress}/>
 
             <div className="flex flex-row w-full h-full">
                 <Sidebar activeSection={activeSection} onNavigate={handleNavigate}/>

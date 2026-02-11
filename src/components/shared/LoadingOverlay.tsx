@@ -11,6 +11,7 @@ export default function LoadingOverlay({visible, progress}: LoadingOverlayProps)
         <AnimatePresence>
             {visible && (
                 <motion.div
+                    data-tauri-drag-region=""
                     className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background"
                     initial={{opacity: 1}}
                     exit={{opacity: 0}}

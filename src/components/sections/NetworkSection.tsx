@@ -34,7 +34,7 @@ export default function NetworkSection({data}: Props) {
                                 <span className="text-xs font-medium uppercase tracking-wide text-foreground/40">IPv4</span>
                                 <div className="flex flex-wrap gap-1 mt-1">
                                     {adapter.ipv4_addresses.map((ip, j) => (
-                                        <Chip key={j} size="sm" variant="flat" color="primary">{ip}</Chip>
+                                        <Chip key={j} size="sm" variant="flat" className="bg-primary/15 text-primary">{ip}</Chip>
                                     ))}
                                 </div>
                             </div>
@@ -57,7 +57,7 @@ export default function NetworkSection({data}: Props) {
                                 <span className="text-xs font-medium uppercase tracking-wide text-foreground/40">DNS Servers</span>
                                 <div className="flex flex-wrap gap-1 mt-1">
                                     {adapter.dns_servers.map((dns, j) => (
-                                        <Chip key={j} size="sm" variant="flat" color="secondary">{dns}</Chip>
+                                        <Chip key={j} size="sm" variant="flat" className="bg-foreground/10 text-foreground/70">{dns}</Chip>
                                     ))}
                                 </div>
                             </div>
