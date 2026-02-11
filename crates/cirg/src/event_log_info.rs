@@ -1,6 +1,7 @@
 use crate::ComputerInfoExt;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
+use std::os::windows::process::CommandExt;
 use std::process::Command;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -46,6 +47,7 @@ fn query_event_log(log_name: &str, since: &str) -> Vec<EventEntry> {
 			"/rd:true",
 			"/f:xml",
 		])
+		.creation_flags(0x08000000)
 		.output();
 
 	let Ok(output) = output else {

@@ -1,6 +1,7 @@
 use crate::ComputerInfoExt;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
+use std::os::windows::process::CommandExt;
 use std::process::Command;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -23,6 +24,7 @@ impl ComputerInfoExt for ScheduledTaskInfo {
 	fn fetch() -> Result<Self> {
 		let output = Command::new("schtasks")
 			.args(["/Query", "/FO", "CSV", "/V"])
+			.creation_flags(0x08000000)
 			.output()?;
 
 		let stdout = String::from_utf8_lossy(&output.stdout);

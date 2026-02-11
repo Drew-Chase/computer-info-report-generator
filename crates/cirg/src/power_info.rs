@@ -2,6 +2,7 @@ use crate::{ComputerInfoExt, VariantExt};
 use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::os::windows::process::CommandExt;
 use std::process::Command;
 use wmi::Variant;
 
@@ -23,7 +24,10 @@ pub struct BatteryInfo {
 
 impl ComputerInfoExt for PowerInfo {
     fn fetch() -> Result<Self> {
-        let output = Command::new("powercfg").arg("/getactivescheme").output()?;
+        let output = Command::new("powercfg")
+            .arg("/getactivescheme")
+            .creation_flags(0x08000000)
+            .output()?;
 
         let stdout = String::from_utf8_lossy(&output.stdout);
         // Parse output: "Power Scheme GUID: <guid>  (<name>)"
