@@ -13,4 +13,4 @@ serde = { version = "1.0.228", features = ["derive"] }
 anyhow = { version = "1.0.101" }
 log = { version = "0.4.29" }
 tokio = { version = "1.49.0", features = ["rt-multi-thread", "sync"] }
-windows = { version = "0.62.0", features = ["Win32_Graphics_Gdi"] }
+windows = { version = "0.62.0", features = ["Win32_Graphics_Gdi", "Win32_System_Com", "Win32_System_UpdateAgent"] }

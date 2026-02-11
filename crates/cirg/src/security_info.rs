@@ -298,6 +298,42 @@ impl SecurityInfo {
     }
 
     fn fetch_pending_updates() -> String {
-        "Not implemented (requires COM automation)".to_string()
+        Self::query_pending_updates()
+            .unwrap_or_else(|_| "Unable to query Windows Update".to_string())
+    }
+
+    fn query_pending_updates() -> windows::core::Result<String> {
+        use windows::Win32::System::Com::{
+            CoCreateInstance, CoInitializeEx, CLSCTX_INPROC_SERVER, COINIT_MULTITHREADED,
+        };
+        use windows::Win32::System::UpdateAgent::{IUpdateSession, UpdateSession};
+        use windows::core::BSTR;
+
+        unsafe {
+            let _ = CoInitializeEx(None, COINIT_MULTITHREADED);
+
+            let session: IUpdateSession =
+                CoCreateInstance(&UpdateSession, None, CLSCTX_INPROC_SERVER)?;
+            let searcher = session.CreateUpdateSearcher()?;
+            searcher.SetOnline(false.into())?;
+
+            let criteria = BSTR::from("IsInstalled=0 AND IsHidden=0");
+            let result = searcher.Search(&criteria)?;
+            let updates = result.Updates()?;
+            let count = updates.Count()?;
+
+            if count == 0 {
+                return Ok("No pending updates".to_string());
+            }
+
+            let mut lines = vec![format!("{count} pending update(s):")];
+            for i in 0..count {
+                let update = updates.get_Item(i)?;
+                let title = update.Title()?;
+                lines.push(format!("  - {title}"));
+            }
+
+            Ok(lines.join("\n"))
+        }
     }
 }
