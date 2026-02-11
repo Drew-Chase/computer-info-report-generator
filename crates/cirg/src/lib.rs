@@ -2,9 +2,26 @@ use std::collections::HashMap;
 use anyhow::anyhow;
 use wmi::Variant;
 
+pub mod audio_info;
 pub mod computer_info;
+pub mod cpu_info;
+pub mod disk_info;
+pub mod environment_info;
+pub mod event_log_info;
+pub mod gpu_info;
+pub mod hotfix_info;
+pub mod memory_info;
+pub mod monitor_info;
+pub mod network_info;
 pub mod power_info;
+pub mod process_info;
+pub mod scheduled_task_info;
 pub mod security_info;
+pub mod service_info;
+pub mod software_info;
+pub mod startup_info;
+pub mod usb_info;
+pub mod users_groups_info;
 
 // Helper trait for extracting values from WMI Variant HashMap
 pub(crate) trait VariantExt {
