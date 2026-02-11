@@ -85,28 +85,16 @@ impl SecurityInfo {
     fn fetch_tpm() -> Option<TmpInfo> {
         #[cfg(target_os = "windows")]
         {
-            // Try WMI first
+            // Try registry first (works without admin)
+            if let Some(info) = Self::fetch_tpm_registry() {
+                return Some(info);
+            }
+
+            // Try WMI (requires admin)
             if let Ok(tpm_info) = Self::fetch_tpm_wmi() {
                 return Some(tpm_info);
             }
 
-            // Fallback: check registry to see if TPM service exists
-            let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
-            if hklm
-                .open_subkey(r"SYSTEM\CurrentControlSet\Services\TPM")
-                .is_ok()
-            {
-                return Some(TmpInfo {
-                    present: true,
-                    ready: false,
-                    enabled: false,
-                    activated: false,
-                    version: "Unknown (run as admin)".to_string(),
-                    manufacturer: "Unknown (run as admin)".to_string(),
-                });
-            }
-
-            // No TPM found
             None
         }
         #[cfg(not(target_os = "windows"))]
@@ -115,30 +103,74 @@ impl SecurityInfo {
         }
     }
 
+    fn fetch_tpm_registry() -> Option<TmpInfo> {
+        let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
+
+        // Check if TPM service exists
+        let tpm_service_exists = hklm
+            .open_subkey(r"SYSTEM\CurrentControlSet\Services\TPM")
+            .is_ok();
+
+        if !tpm_service_exists {
+            return None;
+        }
+
+        // Read TPM version from registry
+        let version = hklm
+            .open_subkey(r"SOFTWARE\Microsoft\Tpm")
+            .ok()
+            .and_then(|key| {
+                // Try SpecVersion first, then ManufacturerVersion
+                key.get_value::<String, _>("SpecVersion")
+                    .ok()
+                    .and_then(|v| v.split(',').next().map(|s| s.trim().to_string()))
+                    .or_else(|| key.get_value::<String, _>("ManufacturerVersion").ok())
+            })
+            .unwrap_or_else(|| "Unknown".to_string());
+
+        // Read manufacturer info
+        let manufacturer = hklm
+            .open_subkey(r"SOFTWARE\Microsoft\Tpm")
+            .ok()
+            .and_then(|key| key.get_value::<String, _>("ManufacturerDisplayName").ok())
+            .unwrap_or_else(|| "Unknown".to_string());
+
+        // Check if TPM is ready via the IsReady registry value
+        let ready = hklm
+            .open_subkey(r"SOFTWARE\Microsoft\Tpm")
+            .ok()
+            .and_then(|key| key.get_value::<u32, _>("IsReady").ok())
+            .map(|v| v == 1)
+            .unwrap_or(false);
+
+        Some(TmpInfo {
+            present: true,
+            ready,
+            enabled: true, // If the service exists, it's enabled
+            activated: ready,
+            version,
+            manufacturer,
+        })
+    }
+
     fn fetch_tpm_wmi() -> Result<TmpInfo> {
         let com = wmi::WMIConnection::with_namespace_path(r"root\cimv2\security\microsofttpm")?;
 
-        // Try querying Win32_Tpm from the TPM namespace
         let query = r#"SELECT * FROM Win32_Tpm"#;
         let results: Vec<HashMap<String, Variant>> = com.raw_query(query)?;
 
         if let Some(data) = results.first() {
-            // The presence of WMI data indicates TPM is present
             let present = true;
-
-            // Get TPM status fields
             let ready = data.get_bool("IsReady_InitialValue").unwrap_or(false);
             let enabled = data.get_bool("IsEnabled_InitialValue").unwrap_or(false);
             let activated = data.get_bool("IsActivated_InitialValue").unwrap_or(false);
 
-            // Extract TPM version
             let version = data
                 .get_string("SpecVersion")
                 .ok()
                 .and_then(|v| v.split(',').next().map(|s| s.trim().to_string()))
                 .unwrap_or_else(|| "Unknown".to_string());
 
-            // Get manufacturer
             let manufacturer = data
                 .get_string("ManufacturerIdTxt")
                 .unwrap_or_else(|_| "Unknown".to_string());
@@ -157,9 +189,9 @@ impl SecurityInfo {
     }
 
     fn fetch_antivirus() -> Option<String> {
-        let com = wmi::WMIConnection::new().ok()?;
+        // AntiVirusProduct lives in root\SecurityCenter2, not root\cimv2
+        let com = wmi::WMIConnection::with_namespace_path(r"root\SecurityCenter2").ok()?;
 
-        // Query SecurityCenter2 namespace for antivirus products
         let query = r#"SELECT displayName, productState FROM AntiVirusProduct"#;
         let results: Vec<HashMap<String, Variant>> = com.raw_query(query).ok()?;
 
@@ -192,7 +224,6 @@ impl SecurityInfo {
     }
 
     fn fetch_firewall() -> Option<FirewallInfo> {
-        // Query Windows Firewall settings from registry
         let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
 
         let mut fw_info = FirewallInfo::default();
@@ -266,14 +297,12 @@ impl SecurityInfo {
             Err(_) => return false,
         };
 
-        // Query BitLocker/EncryptableVolume information
         let query = r#"SELECT ProtectionStatus FROM Win32_EncryptableVolume"#;
         let results: Vec<HashMap<String, Variant>> = match com.raw_query(query) {
             Ok(r) => r,
             Err(_) => return false,
         };
 
-        // Check if any volume has BitLocker protection enabled (ProtectionStatus == 1)
         results.iter().any(|data| {
             data.get_u32("ProtectionStatus")
                 .map(|status| status == 1)
@@ -282,9 +311,6 @@ impl SecurityInfo {
     }
 
     fn fetch_pending_updates() -> String {
-        // Windows Update API requires COM automation (IUpdateSession, IUpdateSearcher, etc.)
-        // This is complex and would require additional COM bindings
-        // For now, indicate this feature is not implemented
         "Not implemented (requires COM automation)".to_string()
     }
 }
