@@ -1,24 +1,24 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "computer_info_report_generator",
-"version": "3.0.0",
+  "productName": "Computer Info Report Generator",
+  "mainBinaryName": "cirg",
+  "version": "3.0.0",
   "identifier": "com.github.drewchase.cirg",
   "build": {
     "devUrl": "http://localhost:1420",
-
     "beforeDevCommand": "pnpm dev",
     "beforeBuildCommand": "pnpm build",
-
     "frontendDist": "../dist"
   },
   "app": {
     "windows": [
       {
-        "title": "Computer Info Report Generator",
+        "title": "CIRG - System Information",
         "width": 1280,
         "height": 720,
+        "minWidth": 800,
+        "minHeight": 600,
         "decorations": false
-        
       }
     ],
     "security": {
