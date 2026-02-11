@@ -1,5 +1,5 @@
 use system_pause::pause;
-use cirg::{computer_info::ComputerInfo, power_info::PowerInfo, security_info::SecurityInfo};
+use cirg::{computer_info::ComputerInfo, power_info::PowerInfo, security_info::SecurityInfo, ComputerInfoExt};
 
 #[tokio::main]
 async fn main() {

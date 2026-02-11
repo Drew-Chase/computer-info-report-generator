@@ -1,10 +1,10 @@
+use crate::{ComputerInfoExt, VariantExt};
 use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use winreg::RegKey;
 use winreg::enums::*;
 use wmi::Variant;
-use crate::VariantExt;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComputerInfo {
@@ -34,8 +34,8 @@ pub struct BIOSInfo {
     pub release_date: chrono::NaiveDate,
 }
 
-impl ComputerInfo {
-    pub fn fetch() -> Result<Self> {
+impl ComputerInfoExt for ComputerInfo {
+    fn fetch() -> Result<Self> {
         let com = wmi::WMIConnection::new()?;
         let results: Vec<HashMap<String, Variant>> =
             com.raw_query(r#"select * from Win32_ComputerSystem"#)?;
@@ -58,8 +58,8 @@ impl ComputerInfo {
     }
 }
 
-impl OSInfo {
-    pub fn fetch() -> Result<Self> {
+impl ComputerInfoExt for OSInfo {
+    fn fetch() -> Result<Self> {
         let mut os_info = OSInfo::default();
         let com = wmi::WMIConnection::new()?;
         let results: Vec<HashMap<String, Variant>> =
@@ -109,8 +109,8 @@ impl OSInfo {
     }
 }
 
-impl BIOSInfo {
-    pub fn fetch() -> Result<Self> {
+impl ComputerInfoExt for BIOSInfo {
+    fn fetch() -> Result<Self> {
         let mut bios_info: Self = BIOSInfo::default();
         let com = wmi::WMIConnection::new()?;
         let results: Vec<HashMap<String, Variant>> =

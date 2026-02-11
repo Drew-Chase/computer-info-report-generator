@@ -52,3 +52,7 @@ impl VariantExt for HashMap<String, Variant> {
 		}
 	}
 }
+
+pub trait ComputerInfoExt{
+	fn fetch()->anyhow::Result<Self> where Self: Sized;
+}

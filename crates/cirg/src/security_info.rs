@@ -2,7 +2,7 @@ use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use crate::VariantExt;
+use crate::{ComputerInfoExt, VariantExt};
 use winreg::RegKey;
 use winreg::enums::*;
 use wmi::Variant;
@@ -20,12 +20,12 @@ pub struct SecurityInfo {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct TmpInfo{
-    pub present     : bool,
-    pub ready       : bool,
-    pub enabled     : bool,
-    pub activated   : bool,
-    pub version     : String,
+pub struct TmpInfo {
+    pub present: bool,
+    pub ready: bool,
+    pub enabled: bool,
+    pub activated: bool,
+    pub version: String,
     pub manufacturer: String,
 }
 
@@ -42,8 +42,8 @@ pub struct FirewallInfo {
     pub public_outbound: Option<String>,
 }
 
-impl SecurityInfo {
-    pub fn fetch() -> Result<Self> {
+impl ComputerInfoExt for SecurityInfo {
+    fn fetch() -> Result<Self> {
         Ok(SecurityInfo {
             secure_boot: Self::fetch_secure_boot(),
             tpm: Self::fetch_tpm(),
@@ -55,7 +55,8 @@ impl SecurityInfo {
             pending_updates: Self::fetch_pending_updates(),
         })
     }
-
+}
+impl SecurityInfo {
     fn fetch_secure_boot() -> bool {
         #[cfg(target_os = "windows")]
         {
@@ -233,11 +234,7 @@ impl SecurityInfo {
             has_data = true;
         }
 
-        if has_data {
-            Some(fw_info)
-        } else {
-            None
-        }
+        if has_data { Some(fw_info) } else { None }
     }
 
     fn fetch_uac() -> bool {

@@ -1,4 +1,4 @@
-use crate::VariantExt;
+use crate::{ComputerInfoExt, VariantExt};
 use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -21,8 +21,8 @@ pub struct BatteryInfo {
     pub chemistry: String,
 }
 
-impl PowerInfo {
-    pub fn fetch() -> Result<Self> {
+impl ComputerInfoExt for PowerInfo {
+    fn fetch() -> Result<Self> {
         let output = Command::new("powercfg").arg("/getactivescheme").output()?;
 
         let stdout = String::from_utf8_lossy(&output.stdout);
@@ -46,8 +46,8 @@ impl PowerInfo {
     }
 }
 
-impl BatteryInfo {
-    pub fn fetch() -> Result<Self> {
+impl ComputerInfoExt for BatteryInfo {
+    fn fetch() -> Result<Self> {
         let com = wmi::WMIConnection::new()?;
         let results: Vec<HashMap<String, Variant>> =
             com.raw_query("SELECT * FROM Win32_Battery")?;
