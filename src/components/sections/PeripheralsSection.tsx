@@ -25,6 +25,8 @@ export default function PeripheralsSection({data}: Props) {
                                 <div className="grid grid-cols-2 gap-3">
                                     <DataField label="Manufacturer" value={m.manufacturer}/>
                                     <DataField label="Year" value={m.year_of_manufacture}/>
+                                    <DataField label="Resolution" value={m.resolution}/>
+                                    <DataField label="Refresh Rate" value={m.refresh_rate ? `${m.refresh_rate} Hz` : "N/A"}/>
                                     <DataField label="Serial" value={m.serial_number}/>
                                 </div>
                             </GlassCard>

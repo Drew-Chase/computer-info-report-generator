@@ -114,6 +114,8 @@ export interface Monitor {
     name: string;
     serial_number: string;
     year_of_manufacture: number;
+    resolution: string;
+    refresh_rate: number;
 }
 
 export interface MonitorInfo {
