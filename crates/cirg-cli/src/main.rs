@@ -1,3 +1,4 @@
+use std::time::Instant;
 use cirg::{
 	audio_info::AudioInfo,
 	computer_info::ComputerInfo,
@@ -25,6 +26,7 @@ use system_pause::pause;
 
 #[tokio::main]
 async fn main() {
+	let stopwatch = Instant::now();
 	let (
 		computer,
 		power,
@@ -95,6 +97,9 @@ async fn main() {
 	for (name, json) in sections {
 		println!("{}: {}", name, json);
 	}
+
+
+	println!("Finished after {:?}", stopwatch.elapsed());
 
 	pause!();
 }
