@@ -30,7 +30,7 @@ export default function HardwareSection({data}: Props) {
                         <DataField label="Architecture" value={cpu.architecture}/>
                         <DataField label="Virtualization" value={cpu.virtualization}/>
                         <DataField label="Status" value={cpu.status}/>
-                        <DataField label="Load %" value={cpu.load_pct}/>
+                        <DataField label="Load %" value={`${cpu.load_pct.toFixed(2)}%`}/>
                     </div>
                 </GlassCard>
             )}

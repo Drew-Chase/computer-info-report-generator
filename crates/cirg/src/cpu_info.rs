@@ -2,6 +2,7 @@ use crate::{ComputerInfoExt, VariantExt};
 use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use sysinfo::System;
 use wmi::Variant;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -17,7 +18,7 @@ pub struct CpuInfo {
 	pub architecture: String,
 	pub virtualization: bool,
 	pub status: String,
-	pub load_pct: u16,
+	pub load_pct: f32,
 }
 
 impl ComputerInfoExt for CpuInfo {
@@ -40,6 +41,13 @@ impl ComputerInfoExt for CpuInfo {
 		}
 		.to_string();
 
+		// Use sysinfo for accurate CPU load (two refreshes with a delay for delta)
+		let mut sys = System::new();
+		sys.refresh_cpu_usage();
+		std::thread::sleep(std::time::Duration::from_millis(200));
+		sys.refresh_cpu_usage();
+		let load_pct = sys.global_cpu_usage();
+
 		Ok(CpuInfo {
 			name: data.get_string("Name").unwrap_or_default(),
 			cores: data.get_u32("NumberOfCores").unwrap_or(0),
@@ -54,7 +62,7 @@ impl ComputerInfoExt for CpuInfo {
 				.get_bool("VirtualizationFirmwareEnabled")
 				.unwrap_or(false),
 			status: data.get_string("Status").unwrap_or_default(),
-			load_pct: data.get_u16("LoadPercentage").unwrap_or(0),
+			load_pct,
 		})
 	}
 }
