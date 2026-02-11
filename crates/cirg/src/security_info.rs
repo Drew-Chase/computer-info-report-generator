@@ -58,28 +58,15 @@ impl ComputerInfoExt for SecurityInfo {
 }
 impl SecurityInfo {
     fn fetch_secure_boot() -> bool {
-        #[cfg(target_os = "windows")]
-        {
-            use windows::Win32::System::WindowsProgramming::GetFirmwareEnvironmentVariableW;
-
-            // Try to query SecureBoot UEFI variable
-            // This requires admin privileges
-            let mut buffer = [0u8; 1];
-            let result = unsafe {
-                GetFirmwareEnvironmentVariableW(
-                    windows::core::w!("SecureBoot"),
-                    windows::core::w!("{8be4df61-93ca-11d2-aa0d-00e098032b8c}"),
-                    Some(buffer.as_mut_ptr() as *mut _),
-                    buffer.len() as u32,
-                )
-            };
-
-            result > 0 && buffer[0] == 1
+        // Read from registry — works without admin privileges
+        let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
+        if let Ok(key) = hklm.open_subkey(r"SYSTEM\CurrentControlSet\Control\SecureBoot\State") {
+            return key
+                .get_value::<u32, _>("UEFISecureBootEnabled")
+                .map(|v| v == 1)
+                .unwrap_or(false);
         }
-        #[cfg(not(target_os = "windows"))]
-        {
-            false
-        }
+        false
     }
 
     fn fetch_tpm() -> Option<TmpInfo> {
